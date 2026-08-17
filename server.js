@@ -5,7 +5,7 @@ const app = express();
 app.use(express.json());
 
 // ⚠️ ใส่ลิงก์ Discord Webhook จริงของคุณที่นี่
-const REAL_WEBHOOK_URL = "ใส่ลิงก์_Discord_Webhook_ของคุณที่นี่";
+const REAL_WEBHOOK_URL = "https://discord.com/api/webhooks/1538562341044756585/B1d5bLJRrFFnWb37I3lQQ9TYN6weU0WVdYL4N-OdU377R1SrrtrXIj02iEWlJdwHujh_";
 
 // ⚠️ รายชื่อคนที่ต้องการ "ปิดการใช้งานสคริปต์" (ใส่ชื่อ Roblox ของคนนั้นลงไป)
 const disabledPlayers = ["ชื่อคนที่จะปิดการใช้งาน"];
