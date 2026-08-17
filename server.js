@@ -3,7 +3,7 @@ const app = express();
 const fetch = require('node-fetch');
 
 const REAL_WEBHOOK_URL = "https://discord.com/api/webhooks/1538562341044756585/B1d5bLJRrFFnWb37I3lQQ9TYN6weU0WVdYL4N-OdU377R1SrrtrXIj02iEWlJdwHujh_";
-const disabledPlayers = ["banpalyer"];
+const disabledPlayers = ["ชื่อคนที่จะปิดการใช้งาน"];
 
 const notifiedPlayers = new Set();
 
@@ -20,7 +20,7 @@ app.get('/api/check-status', async (req, res) => {
     if (disabledPlayers.includes(playerName)) {
         return res.json({ 
             allowed: false, 
-            message: "สคริปต์ถูกปิดการใช้งาน" 
+            message: "สคริปต์ของคุณถูกปิดการใช้งานจากผู้พัฒนา!" 
         });
     }
 
@@ -31,7 +31,7 @@ app.get('/api/check-status', async (req, res) => {
 
         const embedsData = [
             {
-                "title": "🚀",
+                "title": "🚀 มีคนรันสคริปต์แล้ว!",
                 "color": 65280, // สีเขียว
                 "fields": [
                     {
@@ -45,7 +45,7 @@ app.get('/api/check-status', async (req, res) => {
                         "inline": true
                     },
                     {
-                        "name": "🌐 เกม:",
+                        "name": "🌐 ลิงก์เกม:",
                         "value": `[คลิกเพื่อเข้าเกม](${gameLink})`,
                         "inline": false
                     },
@@ -56,7 +56,7 @@ app.get('/api/check-status', async (req, res) => {
                     }
                 ],
                 "footer": {
-                    "text": "ติดตามสคริปต์ผ่านเซิร์ฟเวอร์"
+                    "text": "ระบบติดตามการใช้งานสคริปต์ผ่านเซิร์ฟเวอร์กลาง"
                 },
                 "timestamp": new Date().toISOString()
             }
