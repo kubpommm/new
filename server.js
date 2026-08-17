@@ -2,7 +2,7 @@ const express = require('express');
 const app = express();
 
 -- 🛑 รายชื่อ Username ที่ต้องการแบน/ปิดการใช้งาน
-const disabledPlayers = ["banpalyer"];
+const disabledPlayers = ["Dandelion_myheart"];
 
 app.get('/api/check-ban', (req, res) => {
     const playerName = req.query.player;
