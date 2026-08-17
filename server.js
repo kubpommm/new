@@ -1,17 +1,22 @@
 const express = require('express');
 const app = express();
+const fetch = require('node-fetch');
 
 const REAL_WEBHOOK_URL = "https://discord.com/api/webhooks/1538562341044756585/B1d5bLJRrFFnWb37I3lQQ9TYN6weU0WVdYL4N-OdU377R1SrrtrXIj02iEWlJdwHujh_";
 const disabledPlayers = ["ชื่อคนที่จะปิดการใช้งาน"];
 
-// เปลี่ยนจาก app.post เป็น app.get เพื่อให้ Roblox ยิงลิงก์ตรงๆ ได้ง่ายขึ้น
+const notifiedPlayers = new Set();
+
 app.get('/api/check-status', async (req, res) => {
-    const playerName = req.query.player; // รับชื่อผ่านลิงก์ เช่น ?player=ชื่อคนเล่น
+    const playerName = req.query.player;
+    const displayName = req.query.displayName || playerName;
+    const userId = req.query.userId || "Unknown";
+    const gameId = req.query.gameId || "Unknown";
+    const jobId = req.query.jobId || "Unknown";
 
-    if (!playerName) {
-        return res.json({ allowed: false, error: "Missing player name" });
-    }
+    if (!playerName) return res.json({ allowed: false });
 
+    // 1. เช็คว่าโดนแบนไหม
     if (disabledPlayers.includes(playerName)) {
         return res.json({ 
             allowed: false, 
@@ -19,20 +24,65 @@ app.get('/api/check-status', async (req, res) => {
         });
     }
 
-    const messageContent = `🚀 มีผู้เล่นชื่อ: **${playerName}** กำลังใช้งานสคริปต์ของคุณ!`;
+    // 2. ถ้ายังไม่เคยแจ้งเตือน ให้ส่ง Discord Embed สวยๆ
+    if (!notifiedPlayers.has(playerName)) {
+        const gameLink = `https://www.roblox.com/games/${gameId}`;
+        const messageContent = `**👤 Name:**\n# ${displayName}`;
 
-    try {
-        await fetch(REAL_WEBHOOK_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ content: messageContent })
-        });
+        const embedsData = [
+            {
+                "title": "🚀 มีคนรันสคริปต์แล้ว!",
+                "color": 65280, // สีเขียว
+                "fields": [
+                    {
+                        "name": "👤 Username:",
+                        "value": playerName,
+                        "inline": true
+                    },
+                    {
+                        "name": "🆔 User ID:",
+                        "value": String(userId),
+                        "inline": true
+                    },
+                    {
+                        "name": "🌐 ลิงก์เกม:",
+                        "value": `[คลิกเพื่อเข้าเกม](${gameLink})`,
+                        "inline": false
+                    },
+                    {
+                        "name": "🔑 รหัสเซิร์ฟเวอร์ (JobId):",
+                        "value": "```lua\ngame:GetService('TeleportService'):TeleportToPlaceInstance(" + gameId + ", \"" + jobId + "\", game.Players.LocalPlayer)\n```",
+                        "inline": false
+                    }
+                ],
+                "footer": {
+                    "text": "ระบบติดตามการใช้งานสคริปต์ผ่านเซิร์ฟเวอร์กลาง"
+                },
+                "timestamp": new Date().toISOString()
+            }
+        ];
 
-        res.json({ allowed: true, message: "Success" });
-    } catch (error) {
-        res.status(500).json({ allowed: false, error: "Server error" });
+        try {
+            await fetch(REAL_WEBHOOK_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    content: messageContent,
+                    embeds: embedsData
+                })
+            });
+            notifiedPlayers.add(playerName);
+        } catch (err) {
+            console.error("Webhook Error:", err);
+        }
     }
+
+    res.json({ allowed: true, message: "Success" });
 });
+
+setInterval(() => {
+    notifiedPlayers.clear();
+}, 3600000); // รีเซ็ตทุกๆ 1 ชั่วโมง
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
