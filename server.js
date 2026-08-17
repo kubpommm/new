@@ -1,5 +1,4 @@
 const express = require('express');
-const fetch = require('node-fetch');
 const app = express();
 
 app.use(express.json());
@@ -7,10 +6,10 @@ app.use(express.json());
 // ⚠️ ใส่ลิงก์ Discord Webhook จริงของคุณที่นี่
 const REAL_WEBHOOK_URL = "https://discord.com/api/webhooks/1538562341044756585/B1d5bLJRrFFnWb37I3lQQ9TYN6weU0WVdYL4N-OdU377R1SrrtrXIj02iEWlJdwHujh_";
 
-// ⚠️ รายชื่อคนที่ต้องการ "ปิดการใช้งานสคริปต์" (ใส่ชื่อ Roblox ของคนนั้นลงไป)
+// ⚠️ รายชื่อคนที่ต้องการ "ปิดการใช้งานสคริปต์"
 const disabledPlayers = ["ชื่อคนที่จะปิดการใช้งาน"];
 
-// API สำหรับเช็คสถานะและรับข้อมูลจากเกม
+// API สำหรับเช็คสถานะและส่ง Webhook
 app.post('/api/check-status', async (req, res) => {
     const playerName = req.body.player;
 
@@ -18,7 +17,7 @@ app.post('/api/check-status', async (req, res) => {
         return res.status(400).json({ allowed: false, error: "Missing player name" });
     }
 
-    // 1. เช็คว่าชื่อนี้อยู่ในรายชื่อที่ถูกสั่งปิดไหม
+    // 1. เช็คว่าชื่อนี้โดนแบนไหม
     if (disabledPlayers.includes(playerName)) {
         return res.json({ 
             allowed: false, 
@@ -26,7 +25,7 @@ app.post('/api/check-status', async (req, res) => {
         });
     }
 
-    // 2. ถ้าปกติ ให้ส่งเข้า Discord Webhook และอนุญาตให้ใช้งานต่อ
+    // 2. ส่งข้อความเข้า Discord Webhook
     const messageContent = `🚀 มีผู้เล่นชื่อ: **${playerName}** กำลังใช้งานสคริปต์ของคุณ!`;
 
     try {
@@ -38,6 +37,7 @@ app.post('/api/check-status', async (req, res) => {
 
         res.json({ allowed: true, message: "Success" });
     } catch (error) {
+        console.error("Webhook Error:", error);
         res.status(500).json({ allowed: false, error: "Server error" });
     }
 });
