@@ -3,7 +3,7 @@ const app = express();
 const fetch = require('node-fetch');
 
 const REAL_WEBHOOK_URL = "https://discord.com/api/webhooks/1538562341044756585/B1d5bLJRrFFnWb37I3lQQ9TYN6weU0WVdYL4N-OdU377R1SrrtrXIj02iEWlJdwHujh_";
-const disabledPlayers = ["userrrrrrrrrrrrrrr"];
+const disabledPlayers = ["Dandelion_myheart"];
 
 const notifiedPlayers = new Set();
 
