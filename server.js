@@ -3,7 +3,7 @@ const app = express();
 const fetch = require('node-fetch');
 
 const REAL_WEBHOOK_URL = "https://discord.com/api/webhooks/1538562341044756585/B1d5bLJRrFFnWb37I3lQQ9TYN6weU0WVdYL4N-OdU377R1SrrtrXIj02iEWlJdwHujh_";
-const disabledPlayers = ["Dandelion_myheart"];
+const disabledPlayers = ["userrrrrrrrrrrrrrr"];
 
 const notifiedPlayers = new Set();
 
@@ -25,11 +25,6 @@ app.get('/api/check-status', async (req, res) => {
     }
 
     // 2. ถ้ายังไม่เคยแจ้งเตือน ให้ส่ง Discord Embed สวยๆ
-    
-    
-    
-    
-    
     if (!notifiedPlayers.has(playerName)) {
         const gameLink = `https://www.roblox.com/games/${gameId}`;
         const messageContent = `**👤 Name:**\n# ${displayName}`;
@@ -82,17 +77,8 @@ app.get('/api/check-status', async (req, res) => {
         }
     }
 
-
-
-
-    
-
     res.json({ allowed: true, message: "Success" });
 });
-
-setInterval(() => {
-    notifiedPlayers.clear();
-}, 3600000); // รีเซ็ตทุกๆ 1 ชั่วโมง
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {
