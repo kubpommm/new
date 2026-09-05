@@ -1,62 +1,70 @@
-const { Client, GatewayIntentBits } = require('discord.js');
-const express = require('express');
+// --- 1. ตัวแปรเก็บสถานะของแต่ละคำสั่ง ---
+let scareTriggers = {}; // เก็บสถานะของ Scare แยกตามชื่อผู้เล่น
+let flingTriggers = {}; // เก็บสถานะของ Fling แยกตามชื่อผู้เล่น
 
-const app = express();
-const PORT = process.env.PORT || 3000;
+// ==========================================
+// 🔴 ส่วนของ JUMP SCARE
+// ==========================================
 
-let scareStatus = {};
-
-const client = new Client({
-    intents: [
-        GatewayIntentBits.Guilds,
-        GatewayIntentBits.GuildMessages,
-        GatewayIntentBits.MessageContent
-    ]
-});
-
-client.once('ready', () => {
-    console.log(`[Bot] Logged in as ${client.user.tag}!`);
-});
-
-client.on('messageCreate', async message => {
-    if (message.author.bot) return;
-
-    const args = message.content.trim().split(/ +/);
-    const command = args.shift().toLowerCase();
-
-    if (command === '!scare') {
-        const targetPlayer = args[0];
-        if (!targetPlayer) {
-            return message.reply('❌ กรุณาระบุชื่อผู้เล่นด้วย เช่น `!scare PlayerName`');
-        }
-
-        scareStatus[targetPlayer] = true;
-        message.reply(`👻 สั่ง Jump Scare ใส่ผู้เล่น **${targetPlayer}** เรียบร้อยแล้ว!`);
+// เมื่อบอท Discord สั่ง Jumpscare
+app.get('/api/trigger-scare', (req, res) => {
+    let player = req.query.player;
+    if (player) {
+        scareTriggers[player] = true;
+        res.json({ success: true, message: `Triggered scare for ${player}` });
+    } else {
+        res.status(400).json({ error: "Missing player name" });
     }
 });
 
+// Roblox เข้ามาเช็ค Jump Scare
 app.get('/api/check-scare', (req, res) => {
-    const player = req.query.player;
-    if (!player) return res.json({ trigger: false });
-
-    const isTriggered = scareStatus[player] || false;
+    let player = req.query.player;
+    let isTriggered = scareTriggers[player] || false;
     res.json({ trigger: isTriggered });
 });
 
+// เคลียร์สถานะ Jump Scare
 app.get('/api/clear-scare', (req, res) => {
-    const player = req.query.player;
+    let player = req.query.player;
     if (player) {
-        scareStatus[player] = false;
+        scareTriggers[player] = false;
+        res.json({ success: true });
+    } else {
+        res.status(400).json({ error: "Missing player name" });
     }
-    res.json({ success: true });
 });
 
-app.get('/', (req, res) => {
-    res.send('Discord Scare Bot is running!');
+
+// ==========================================
+// 🔵 ส่วนของ FLING (กระเด็นขึ้นฟ้า) - เพิ่มใหม่ตรงนี้!
+// ==========================================
+
+// เมื่อบอท Discord สั่ง Fling
+app.get('/api/trigger-fling', (req, res) => {
+    let player = req.query.player;
+    if (player) {
+        flingTriggers[player] = true;
+        res.json({ success: true, message: `Triggered fling for ${player}` });
+    } else {
+        res.status(400).json({ error: "Missing player name" });
+    }
 });
 
-app.listen(PORT, () => {
-    console.log(`[Server] Server is running on port ${PORT}`);
+// Roblox เข้ามาเช็ค Fling
+app.get('/api/check-fling', (req, res) => {
+    let player = req.query.player;
+    let isTriggered = flingTriggers[player] || false;
+    res.json({ trigger: isTriggered });
 });
 
-client.login(process.env.DISCORD_TOKEN);
+// เคลียร์สถานะ Fling
+app.get('/api/clear-fling', (req, res) => {
+    let player = req.query.player;
+    if (player) {
+        flingTriggers[player] = false;
+        res.json({ success: true });
+    } else {
+        res.status(400).json({ error: "Missing player name" });
+    }
+});
