@@ -1,35 +1,62 @@
+const { Client, GatewayIntentBits } = require('discord.js');
 const express = require('express');
+
 const app = express();
-const fetch = require('node-fetch');
-
-const REAL_WEBHOOK_URL = "https://discord.com/api/webhooks/1538562341044756585/B1d5bLJRrFFnWb37I3lQQ9TYN6weU0WVdYL4N-OdU377R1SrrtrXIj02iEWlJdwHujh_";
-const disabledPlayers = ["Dandelion_myheartttt"];
-
-const notifiedPlayers = new Set();
-
-app.get('/api/check-status', async (req, res) => {
-    const playerName = req.query.player;
-    const displayName = req.query.displayName || playerName;
-    const userId = req.query.userId || "Unknown";
-    const gameId = req.query.gameId || "Unknown";
-    const jobId = req.query.jobId || "Unknown";
-
-    if (!playerName) return res.json({ allowed: false });
-
-    // 1. เช็คว่าโดนแบนไหม
-    if (disabledPlayers.includes(playerName)) {
-        return res.json({ 
-            allowed: false, 
-            message: "ถูกปิดการใช้งานจากผู้พัฒนา!" 
-        });
-    }
-
-   
-
-    res.json({ allowed: true, message: "Success" });
-});
-
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-    console.log(`Server is running on port ${PORT}`);
+
+let scareStatus = {};
+
+const client = new Client({
+    intents: [
+        GatewayIntentBits.Guilds,
+        GatewayIntentBits.GuildMessages,
+        GatewayIntentBits.MessageContent
+    ]
 });
+
+client.once('ready', () => {
+    console.log(`[Bot] Logged in as ${client.user.tag}!`);
+});
+
+client.on('messageCreate', async message => {
+    if (message.author.bot) return;
+
+    const args = message.content.trim().split(/ +/);
+    const command = args.shift().toLowerCase();
+
+    if (command === '!scare') {
+        const targetPlayer = args[0];
+        if (!targetPlayer) {
+            return message.reply('❌ กรุณาระบุชื่อผู้เล่นด้วย เช่น `!scare PlayerName`');
+        }
+
+        scareStatus[targetPlayer] = true;
+        message.reply(`👻 สั่ง Jump Scare ใส่ผู้เล่น **${targetPlayer}** เรียบร้อยแล้ว!`);
+    }
+});
+
+app.get('/api/check-scare', (req, res) => {
+    const player = req.query.player;
+    if (!player) return res.json({ trigger: false });
+
+    const isTriggered = scareStatus[player] || false;
+    res.json({ trigger: isTriggered });
+});
+
+app.get('/api/clear-scare', (req, res) => {
+    const player = req.query.player;
+    if (player) {
+        scareStatus[player] = false;
+    }
+    res.json({ success: true });
+});
+
+app.get('/', (req, res) => {
+    res.send('Discord Scare Bot is running!');
+});
+
+app.listen(PORT, () => {
+    console.log(`[Server] Server is running on port ${PORT}`);
+});
+
+client.login(process.env.DISCORD_TOKEN);
